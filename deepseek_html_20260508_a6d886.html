@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - PromptHub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #000;
+            font-family: monospace;
+            color: #0ff;
+            padding: 2rem;
+        }
+        .admin-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(0,255,255,0.1);
+            border: 2px solid #0ff;
+            border-radius: 15px;
+            padding: 2rem;
+        }
+        h1 {
+            color: #f0f;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            background: #111;
+            border: 1px solid #0ff;
+            color: #0ff;
+            border-radius: 5px;
+        }
+        button {
+            background: #0ff;
+            color: #000;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 1rem;
+        }
+        .prompt-item {
+            border: 1px solid #0ff;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+<div class="admin-container">
+    <h1>⚡ ADMIN PANEL - PROMPTHUB ⚡</h1>
+    
+    <div id="adminStatus"></div>
+    
+    <h2>➕ Tambah Prompt Baru</h2>
+    <input type="text" id="title" placeholder="Judul Prompt">
+    <input type="text" id="category" placeholder="Kategori">
+    <textarea id="content" rows="4" placeholder="Isi prompt..."></textarea>
+    <button onclick="addPrompt()">Simpan Prompt</button>
+    
+    <h2 style="margin-top: 2rem">📋 Daftar Prompt</h2>
+    <div id="promptList"></div>
+</div>
+
+<script>
+    // Cek login admin
+    const adminSession = localStorage.getItem('admin_session');
+    if (adminSession !== 'Adit:tiya') {
+        const usr = prompt('Username Admin:');
+        const pwd = prompt('Password:');
+        if (usr === 'Adit' && pwd === 'tiya') {
+            localStorage.setItem('admin_session', 'Adit:tiya');
+        } else {
+            alert('Akses ditolak!');
+            window.location.href = 'index.html';
+        }
+    }
+    
+    document.getElementById('adminStatus').innerHTML = '<p>✅ Login sebagai: ADMIN (Adit)</p>';
+    
+    // Load prompts
+    let prompts = [];
+    
+    function loadPrompts() {
+        const saved = localStorage.getItem('prompts');
+        if (saved) {
+            prompts = JSON.parse(saved);
+        } else {
+            prompts = [
+                {id: 1, title: "Code Generator", category: "Coding", content: "Generate code for..."},
+                {id: 2, title: "Art Prompt", category: "Art", content: "Create art..."}
+            ];
+        }
+        renderPrompts();
+    }
+    
+    function renderPrompts() {
+        const container = document.getElementById('promptList');
+        container.innerHTML = prompts.map(p => `
+            <div class="prompt-item">
+                <strong>${p.title}</strong> (${p.category})<br>
+                <small>${p.content.substring(0, 100)}...</small><br>
+                <button onclick="deletePrompt(${p.id})">Hapus</button>
+            </div>
+        `).join('');
+    }
+    
+    function addPrompt() {
+        const title = document.getElementById('title').value;
+        const category = document.getElementById('category').value;
+        const content = document.getElementById('content').value;
+        
+        if (!title || !content) {
+            alert('Judul dan konten wajib diisi!');
+            return;
+        }
+        
+        const newPrompt = {
+            id: Date.now(),
+            title,
+            category,
+            content,
+            tags: []
+        };
+        
+        prompts.push(newPrompt);
+        localStorage.setItem('prompts', JSON.stringify(prompts));
+        
+        document.getElementById('title').value = '';
+        document.getElementById('category').value = '';
+        document.getElementById('content').value = '';
+        
+        renderPrompts();
+        alert('Prompt berhasil ditambahkan!');
+    }
+    
+    function deletePrompt(id) {
+        if (confirm('Yakin hapus?')) {
+            prompts = prompts.filter(p => p.id !== id);
+            localStorage.setItem('prompts', JSON.stringify(prompts));
+            renderPrompts();
+        }
+    }
+    
+    loadPrompts();
+</script>
+</body>
+</html>
